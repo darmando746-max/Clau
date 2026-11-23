@@ -1,723 +1,446 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Clau ❤️</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Para Clau">
+  <title>Para Clau ❤️</title>
   <style>
-    /* Estilo base tipo terminal elegante y romántica */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
-      margin: 0;
-      padding: 0;
       width: 100%;
       height: 100%;
+      background-color: #09090d;
+      color: #ffffff;
       overflow: hidden;
-      background-color: #08090d;
-      background-image: radial-gradient(circle at 50% 42%, #121724 0%, #08090d 72%);
-      color: #f8fafc;
-      -webkit-tap-highlight-color: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-user-select: none;
       user-select: none;
       touch-action: none;
     }
-
-    .font-serif-romantic {
-      font-family: 'Cormorant Garamond', Georgia, serif;
-    }
-
-    .font-mono-tech {
-      font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    }
-
-    /* Animación suave de aparición para la dedicatoria */
-    @keyframes fadeUp {
-      0% {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-      100% {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .animate-fade-up {
-      animation: fadeUp 1.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-    }
-
-    .animate-fade-up-delay {
-      opacity: 0;
-      animation: fadeUp 1.4s cubic-bezier(0.22, 1, 0.36, 1) 0.45s forwards;
-    }
-
-    .glow-love {
-      text-shadow:
-        0 0 18px rgba(244, 63, 94, 0.35),
-        0 0 36px rgba(255, 255, 255, 0.14);
-    }
-
-    canvas {
-      display: block;
+    #scene {
+      position: fixed;
+      top: 0;
+      left: 0;
       width: 100%;
       height: 100%;
-      cursor: grab;
+      display: block;
     }
-
-    canvas:active {
-      cursor: grabbing;
+    footer {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 10;
+      text-align: center;
+      padding: 16px 16px calc(22px + env(safe-area-inset-bottom, 0px));
+      background: linear-gradient(to top, rgba(9, 9, 13, 0.92) 55%, rgba(9, 9, 13, 0));
+      pointer-events: none;
+    }
+    .nombre {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 16px;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: #d7dbe6;
+      margin-bottom: 4px;
+    }
+    h1 {
+      font-family: Georgia, "Times New Roman", serif;
+      font-weight: normal;
+      font-size: 30px;
+      color: #ffffff;
+      text-shadow: 0 0 18px rgba(255, 255, 255, 0.28);
+      margin-bottom: 6px;
+    }
+    .hint {
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      color: #7c8294;
+      text-transform: lowercase;
     }
   </style>
 </head>
-<body class="flex flex-col items-center justify-between h-[100dvh] w-screen overflow-hidden">
+<body>
+  <canvas id="scene" aria-label="Ramo de lirios blancos, hortensias y nube en 3D"></canvas>
 
-  <!-- Contenedor principal del lienzo 3D ASCII -->
-  <main class="relative flex-1 w-full flex items-center justify-center overflow-hidden">
-    <canvas id="bouquetCanvas" aria-label="Ramo de lirios blancos, hortensias y nube en 3D"></canvas>
-  </main>
-
-  <!-- Dedicatoria inferior minimalista y elegante -->
-  <footer class="relative z-10 w-full flex flex-col items-center justify-center pb-6 sm:pb-8 pt-1 px-4 text-center pointer-events-none">
-    <p class="font-mono-tech text-xs sm:text-sm tracking-[0.26em] uppercase text-slate-300/80 mb-1 animate-fade-up">
-      Clau
-    </p>
-    <h1 class="font-serif-romantic text-3xl sm:text-4xl md:text-5xl font-semibold tracking-wide text-white glow-love animate-fade-up-delay">
-      Te amo <span class="text-rose-500 inline-block align-middle text-2xl sm:text-3xl md:text-4xl">❤️</span>
-    </h1>
-    <p id="dragHint" class="font-mono-tech text-[10px] sm:text-xs tracking-[0.2em] uppercase text-slate-500 mt-3 transition-opacity duration-700">
-      desliza para girar
-    </p>
+  <footer>
+    <p class="nombre">Clau</p>
+    <h1>Te amo ❤️</h1>
+    <p class="hint">desliza para girar</p>
   </footer>
 
   <script>
-    /**
-     * Motor 3D ASCII interactivo para el ramo de Clau
-     * Renderiza una nube de puntos 3D con Z-buffer, iluminación direccional
-     * y caracteres ASCII de luminancia en un <canvas> optimizado para 60fps.
-     */
     (function () {
-      const canvas = document.getElementById('bouquetCanvas');
-      const ctx = canvas.getContext('2d', { alpha: true });
-      const dragHint = document.getElementById('dragHint');
+      var canvas = document.getElementById("scene");
+      var ctx = canvas.getContext("2d");
+      var LUM = ".,-~:;=!*#$@";
 
-      // Caracteres ordenados de menor a mayor brillo
-      const LUMINANCE_CHARS = '.,-~:;=!*#$@';
-      const NUBE_CHARS = ['.', '*', '+', '°'];
+      // Paleta de tonos para distinguir flores blancas, nube, follaje y envoltura
+      var C_LIRIO = "#ffffff";
+      var C_LIRIO_C = "#d9f2b4";
+      var C_ESTAMBRE = "#f5c542";
+      var C_HORT1 = "#e8eef8";
+      var C_HORT2 = "#d4dcf0";
+      var C_NUBE = "#fff8e7";
+      var C_HOJA = "#3fa362";
+      var C_TALLO = "#256b40";
+      var C_PAPEL = "#c9a882";
+      var C_LISTON = "#d93848";
 
-      // Paleta de colores RGB para lograr contraste entre flores blancas y follaje
-      const COLORS = {
-        lilyWhite: [255, 255, 255],       // Blanco puro para lirios
-        lilyEdge: [248, 250, 252],        // Blanco suave
-        lilyThroat: [187, 247, 208],      // Verde pálido en la garganta del lirio
-        stamenStem: [245, 158, 11],       // Ámbar para filamentos
-        stamenTip: [251, 191, 36],        // Dorado brillante para anteras
-
-        hydrangeaPearl: [226, 232, 240],  // Blanco perla
-        hydrangeaIce: [224, 242, 254],    // Matiz azul hielo muy sutil
-        hydrangeaLav: [237, 233, 254],    // Matiz lavanda pálido muy sutil
-
-        nubeWarm: [254, 249, 195],        // Blanco cálido para la nube
-        nubeSoft: [241, 245, 249],        // Blanco nieve suave
-
-        leafBright: [34, 197, 94],        // Verde esmeralda
-        leafMid: [22, 163, 74],           // Verde medio
-        leafDeep: [21, 128, 61],          // Verde eucalipto profundo
-        stemGreen: [22, 101, 52],         // Tallos
-
-        wrapLight: [214, 195, 165],       // Papel kraft/champagne claro
-        wrapDark: [184, 159, 125],        // Papel kraft/champagne sombra
-        ribbonRed: [225, 29, 72],         // Listón rojo carmesí
-        ribbonHighlight: [251, 113, 133]  // Brillo del listón
-      };
-
-      // Arreglo global de puntos 3D del ramo
-      const points = [];
-
-      /**
-       * Rota un vector local en los ejes X y Z para orientar cada flor hacia afuera.
-       */
-      function rotateLocal(x, y, z, rx, rz) {
-        const cx = Math.cos(rx), sx = Math.sin(rx);
-        const y1 = y * cx - z * sx;
-        const z1 = y * sx + z * cx;
-
-        const cz = Math.cos(rz), sz = Math.sin(rz);
-        const x2 = x * cz - y1 * sz;
-        const y2 = x * sz + y1 * cz;
-
-        return [x2, y2, z1];
+      function rotLocal(x, y, z, rx, rz) {
+        var cx = Math.cos(rx), sx = Math.sin(rx);
+        var y1 = y * cx - z * sx;
+        var z1 = y * sx + z * cx;
+        var cz = Math.cos(rz), sz = Math.sin(rz);
+        return [x * cz - y1 * sz, x * sz + y1 * cz, z1];
       }
 
-      /**
-       * Agrega un punto 3D con su normal, color base y tipo especial.
-       */
-      function addPoint(x, y, z, nx, ny, nz, rgb, kind = 'normal', phase = 0) {
-        // Normalizar vector normal
-        const len = Math.hypot(nx, ny, nz) || 1;
-        points.push({
-          x, y, z,
-          nx: nx / len,
-          ny: ny / len,
-          nz: nz / len,
-          r: rgb[0],
-          g: rgb[1],
-          b: rgb[2],
-          kind,
-          phase
-        });
-      }
-
-      /**
-       * 1. LIRIO BLANCO (White Lily)
-       * 6 pétalos largos, puntiagudos y curvados hacia afuera,
-       * garganta verde pálido y 6 estambres dorados prominentes.
-       */
-      function addWhiteLily(cx, cy, cz, rx, rz, scale = 1.0) {
-        const petalCount = 6;
-
-        for (let p = 0; p < petalCount; p++) {
-          const baseAng = (p / petalCount) * Math.PI * 2;
-          // Alternar ligeramente altura entre pétalos internos y externos
-          const layerOffset = (p % 2 === 0) ? 0.0 : 0.06;
-          const ca = Math.cos(baseAng);
-          const sa = Math.sin(baseAng);
-
-          const uSteps = 16;
-          for (let u = 0; u <= uSteps; u++) {
-            const t = u / uSteps; // 0 en la base, 1 en la punta
-            // Perfil elegante en forma de trompeta que se abre y se curva suavemente
-            const radial = scale * (0.08 + 0.88 * Math.pow(t, 0.88));
-            const height = scale * (0.58 * Math.sin(t * Math.PI * 0.72) - 0.22 * t * t + layerOffset * t);
-            // Ancho puntiagudo (más ancho en el medio, fino en la punta)
-            const halfWidth = scale * 0.22 * Math.sin(Math.pow(t, 0.78) * Math.PI);
-
-            const vSteps = t < 0.15 || t > 0.88 ? 2 : 4;
-            for (let v = -vSteps; v <= vSteps; v++) {
-              const frac = v / vSteps;
-              const w = frac * halfWidth;
-              // Ligera curvatura cóncava a lo ancho del pétalo
-              const cup = 0.05 * scale * (1 - frac * frac);
-
-              const lx = radial * ca - w * sa;
-              const lz = radial * sa + w * ca;
-              const ly = height + cup;
-
-              const [wx, wy, wz] = rotateLocal(lx, ly, lz, rx, rz);
-              // Normal apuntando hacia arriba y ligeramente hacia afuera
-              const [wnx, wny, wnz] = rotateLocal(0.35 * ca, 0.9, 0.35 * sa, rx, rz);
-
-              // Garganta verde pálido cerca del centro, blanco puro en el resto
-              const color = t < 0.22
-                ? COLORS.lilyThroat
-                : (Math.abs(frac) > 0.7 ? COLORS.lilyEdge : COLORS.lilyWhite);
-
-              addPoint(cx + wx, cy + wy, cz + wz, wnx, wny, wnz, color, 'lily');
+      function addLirio(pts, cx, cy, cz, rx, rz, escala) {
+        var s = escala || 0.72;
+        var p, u, v, ang, ca, sa, t, dist, ancho, curva, w, lx, ly, lz, pos, norm;
+        // 6 pétalos largos y puntiagudos
+        for (p = 0; p < 6; p++) {
+          ang = (p / 6) * Math.PI * 2;
+          ca = Math.cos(ang);
+          sa = Math.sin(ang);
+          for (u = 1; u <= 11; u++) {
+            t = u / 11;
+            dist = s * (0.12 + 0.92 * t);
+            ancho = s * 0.25 * Math.sin(Math.pow(t, 0.8) * Math.PI);
+            curva = s * (0.48 * t - 0.34 * t * t * t);
+            for (v = -2; v <= 2; v++) {
+              w = (v / 2) * ancho;
+              lx = dist * ca - w * sa;
+              lz = dist * sa + w * ca;
+              ly = curva;
+              pos = rotLocal(lx, ly, lz, rx, rz);
+              norm = rotLocal(0.25 * ca, 0.92, 0.25 * sa, rx, rz);
+              pts.push([
+                cx + pos[0], cy + pos[1], cz + pos[2],
+                norm[0], norm[1], norm[2],
+                t < 0.28 ? C_LIRIO_C : C_LIRIO
+              ]);
             }
           }
         }
-
-        // Estambres dorados saliendo del centro del lirio
-        for (let s = 0; s < 6; s++) {
-          const ang = (s / 6) * Math.PI * 2 + 0.25;
-          const ca = Math.cos(ang);
-          const sa = Math.sin(ang);
-
-          for (let k = 1; k <= 7; k++) {
-            const t = k / 7;
-            const r = scale * (0.04 + 0.24 * Math.pow(t, 1.1));
-            const ly = scale * (0.08 + 0.44 * t - 0.08 * t * t);
-            const lx = r * ca;
-            const lz = r * sa;
-
-            const [wx, wy, wz] = rotateLocal(lx, ly, lz, rx, rz);
-            const [wnx, wny, wnz] = rotateLocal(ca * 0.4, 0.9, sa * 0.4, rx, rz);
-            const isTip = k >= 6;
-
-            addPoint(
-              cx + wx, cy + wy, cz + wz,
-              wnx, wny, wnz,
-              isTip ? COLORS.stamenTip : COLORS.stamenStem,
-              isTip ? 'stamen' : 'normal'
+        // Estambres dorados en el centro
+        for (p = 0; p < 6; p++) {
+          ang = (p / 6) * Math.PI * 2 + 0.3;
+          for (u = 1; u <= 5; u++) {
+            t = u / 5;
+            pos = rotLocal(
+              s * 0.22 * t * Math.cos(ang),
+              s * (0.1 + 0.42 * t),
+              s * 0.22 * t * Math.sin(ang),
+              rx, rz
             );
+            pts.push([
+              cx + pos[0], cy + pos[1], cz + pos[2],
+              0, 1, 0,
+              u >= 4 ? C_ESTAMBRE : C_LIRIO_C
+            ]);
           }
         }
       }
 
-      /**
-       * 2. HORTENSIA BLANCA (White Hydrangea)
-       * Pompón esponjoso formado por múltiples florecillas densas en tono
-       * blanco perla con sutiles matices azul hielo y lavanda pálido.
-       */
-      function addWhiteHydrangea(cx, cy, cz, rx, rz, radius = 0.62) {
-        const floretCount = 46;
-        // Distribución de Fibonacci en semiesfera/domo para volumen natural
-        const goldenAngle = Math.PI * (3 - Math.sqrt(5));
-
-        for (let i = 0; i < floretCount; i++) {
-          const t = i / (floretCount - 1);
-          const yNorm = 1 - t * 1.28; // Domo redondeado
-          const rRing = Math.sqrt(Math.max(0, 1 - yNorm * yNorm));
-          const theta = goldenAngle * i;
-
-          // Pequeña variación orgánica en el radio
-          const jitter = 0.9 + 0.16 * Math.sin(i * 12.7);
-          const fx = rRing * Math.cos(theta) * radius * jitter;
-          const fy = (yNorm * 0.78 + 0.25) * radius * jitter;
-          const fz = rRing * Math.sin(theta) * radius * jitter;
-
-          // Elegir matiz sutil para dar profundidad de nube esponjosa
-          let floretColor = COLORS.hydrangeaPearl;
-          if (i % 3 === 0) floretColor = COLORS.hydrangeaIce;
-          else if (i % 5 === 0) floretColor = COLORS.hydrangeaLav;
-
-          // Cada florecilla tiene 4 mini-pétalos en cruz
-          const floretSize = radius * 0.19;
-          for (let p = 0; p < 4; p++) {
-            const pa = (p / 4) * Math.PI * 2 + (i * 0.7);
-            const px = fx + Math.cos(pa) * floretSize;
-            const py = fy + Math.sin(pa) * floretSize * 0.45;
-            const pz = fz + Math.sin(pa) * floretSize;
-
-            const [wx, wy, wz] = rotateLocal(px, py, pz, rx, rz);
-            const [wnx, wny, wnz] = rotateLocal(fx, fy + 0.2, fz, rx, rz);
-
-            addPoint(cx + wx, cy + wy, cz + wz, wnx, wny, wnz, floretColor, 'hydrangea');
-          }
-
-          // Centro de la florecilla
-          const [wx, wy, wz] = rotateLocal(fx, fy, fz, rx, rz);
-          const [wnx, wny, wnz] = rotateLocal(fx, fy + 0.2, fz, rx, rz);
-          addPoint(cx + wx, cy + wy, cz + wz, wnx, wny, wnz, COLORS.lilyWhite, 'hydrangea');
-        }
-      }
-
-      /**
-       * 3. FOLLAJE "NUBE" (Baby's Breath / Gypsophila)
-       * Ramitas finas con constelaciones de diminutas estrellas blancas
-       * que centellean suavemente alrededor de las flores principales.
-       */
-      function addBabysBreathSprig(x0, y0, z0, x1, y1, z1, seed) {
-        // Tallo muy fino
-        const steps = 12;
-        for (let i = 1; i <= steps; i++) {
-          const t = i / steps;
-          const px = x0 + (x1 - x0) * t;
-          const py = y0 + (y1 - y0) * t;
-          const pz = z0 + (z1 - z0) * t;
-          addPoint(px, py, pz, 0, 1, 0, COLORS.leafDeep, 'normal');
-        }
-
-        // Pequeña nube de florecillas diminutas en la punta
-        const clusterPoints = 14;
-        for (let k = 0; k < clusterPoints; k++) {
-          const a1 = (k * 2.39996) + seed;
-          const a2 = Math.sin(k * 1.7 + seed) * 1.1;
-          const dist = 0.14 + 0.28 * ((k % 5) / 4);
-
-          const ox = Math.cos(a1) * Math.cos(a2) * dist;
-          const oy = Math.sin(a2) * dist * 0.8 + 0.08;
-          const oz = Math.sin(a1) * Math.cos(a2) * dist;
-
-          const color = k % 2 === 0 ? COLORS.nubeWarm : COLORS.nubeSoft;
-          addPoint(x1 + ox, y1 + oy, z1 + oz, 0, 1, 0.5, color, 'nube', seed + k * 0.9);
-        }
-      }
-
-      /**
-       * 4. TALLOS Y HOJAS VERDES (Eucalipto y follaje esmeralda)
-       */
-      function addStem(x0, y0, z0, x1, y1, z1) {
-        const steps = 22;
-        for (let i = 0; i <= steps; i++) {
-          const t = i / steps;
-          const px = x0 + (x1 - x0) * t;
-          const py = y0 + (y1 - y0) * t;
-          const pz = z0 + (z1 - z0) * t;
-          for (let k = 0; k < 5; k++) {
-            const ang = (k / 5) * Math.PI * 2;
-            const r = 0.04;
-            addPoint(
-              px + r * Math.cos(ang),
-              py,
-              pz + r * Math.sin(ang),
-              Math.cos(ang), 0.15, Math.sin(ang),
-              COLORS.stemGreen
-            );
+      function addHortensia(pts, cx, cy, cz, radio) {
+        var r = radio || 0.56;
+        var i, j, phi, theta, x, y, z, col;
+        // Esfera esponjosa formada por racimos de florecitas
+        for (i = 0; i < 42; i++) {
+          phi = Math.acos(1 - 2 * ((i + 0.5) / 42));
+          theta = Math.PI * (1 + Math.sqrt(5)) * i;
+          var fx = r * Math.sin(phi) * Math.cos(theta);
+          var fy = r * 0.88 * Math.cos(phi);
+          var fz = r * Math.sin(phi) * Math.sin(theta);
+          col = (i % 3 === 0) ? C_HORT2 : C_HORT1;
+          for (j = 0; j < 5; j++) {
+            var a = (j / 5) * Math.PI * 2;
+            var off = 0.085;
+            x = fx + off * Math.cos(a);
+            y = fy + off * Math.sin(a) * 0.6;
+            z = fz + off * Math.sin(a);
+            pts.push([
+              cx + x, cy + y, cz + z,
+              fx / r, fy / r, fz / r,
+              col
+            ]);
           }
         }
       }
 
-      function addLeaf(bx, by, bz, angY, tilt, length = 1.05, width = 0.30, shade = 0) {
-        const ca = Math.cos(angY);
-        const sa = Math.sin(angY);
-        const leafColor = shade === 0 ? COLORS.leafBright : (shade === 1 ? COLORS.leafMid : COLORS.leafDeep);
-
-        for (let u = 1; u <= 13; u++) {
-          const t = u / 13;
-          const dist = length * t;
-          const wMax = width * Math.sin(t * Math.PI);
-          const arch = 0.22 * Math.sin(t * Math.PI) - 0.10 * t * t;
-
-          for (let v = -3; v <= 3; v++) {
-            const w = (v / 3) * wMax;
-            const lx = dist;
-            const ly = dist * tilt + arch;
-            const lz = w;
-
-            const x = lx * ca - lz * sa;
-            const z = lx * sa + lz * ca;
-            addPoint(bx + x, by + ly, bz + z, 0.2 * ca, 0.92, 0.2 * sa, leafColor);
+      function addTallo(pts, x0, y0, z0, x1, y1, z1) {
+        var i, t, px, py, pz, k, ang;
+        for (i = 0; i <= 18; i++) {
+          t = i / 18;
+          px = x0 + (x1 - x0) * t;
+          py = y0 + (y1 - y0) * t;
+          pz = z0 + (z1 - z0) * t;
+          for (k = 0; k < 4; k++) {
+            ang = (k / 4) * Math.PI * 2;
+            pts.push([
+              px + 0.04 * Math.cos(ang), py, pz + 0.04 * Math.sin(ang),
+              Math.cos(ang), 0.2, Math.sin(ang),
+              C_TALLO
+            ]);
           }
         }
       }
 
-      /**
-       * 5. ENVOLTURA DE PAPEL CHAMPAGNE/KRAFT Y LISTÓN CARMESÍ
-       */
-      function addWrappingAndRibbon() {
-        // Cono superior de papel
-        for (let i = 0; i < 28; i++) {
-          const t = i / 27;
-          const y = -0.35 + t * 1.62;
-          const rBase = 0.30 + t * 1.32;
-
-          for (let j = 0; j < 56; j++) {
-            const theta = (j / 56) * Math.PI * 2;
-            // Borde superior suavemente ondulado como papel doblado
-            const yWave = y + 0.16 * Math.sin(4 * theta + 0.5) * t;
-            const x = rBase * Math.cos(theta);
-            const z = rBase * Math.sin(theta);
-            const color = (Math.sin(4 * theta) > 0) ? COLORS.wrapLight : COLORS.wrapDark;
-            addPoint(x, yWave, z, Math.cos(theta), 0.25, Math.sin(theta), color);
-          }
-        }
-
-        // Base inferior del papel (debajo del listón)
-        for (let i = 0; i < 12; i++) {
-          const t = i / 11;
-          const y = -0.35 - t * 0.78;
-          const rBase = 0.30 + t * 0.28;
-          for (let j = 0; j < 30; j++) {
-            const theta = (j / 30) * Math.PI * 2;
-            const x = rBase * Math.cos(theta);
-            const z = rBase * Math.sin(theta);
-            addPoint(x, y, z, Math.cos(theta), -0.25, Math.sin(theta), COLORS.wrapDark);
-          }
-        }
-
-        // Listón rojo satinado en la cintura del ramo
-        for (let i = 0; i < 6; i++) {
-          const y = -0.45 + i * 0.04;
-          for (let j = 0; j < 36; j++) {
-            const theta = (j / 36) * Math.PI * 2;
-            const r = 0.36;
-            const color = (i === 2 || i === 3) ? COLORS.ribbonHighlight : COLORS.ribbonRed;
-            addPoint(r * Math.cos(theta), y, r * Math.sin(theta), Math.cos(theta), 0.0, Math.sin(theta), color);
-          }
-        }
-
-        // Dos colas elegantes del listón cayendo al frente
-        for (let side of [-1, 1]) {
-          for (let k = 0; k < 14; k++) {
-            const t = k / 13;
-            const rx = side * (0.08 + 0.24 * t);
-            const ry = -0.42 - 0.62 * t;
-            const rz = 0.38 + 0.08 * Math.sin(t * Math.PI);
-            addPoint(rx, ry, rz, 0, 0.2, 1, COLORS.ribbonRed);
-            addPoint(rx + side * 0.04, ry, rz, 0, 0.2, 1, COLORS.ribbonHighlight);
+      function addHoja(pts, bx, by, bz, angY, incl) {
+        var ca = Math.cos(angY), sa = Math.sin(angY);
+        var u, v, t, dist, wMax, arch, w, lx, ly, lz;
+        for (u = 1; u <= 11; u++) {
+          t = u / 11;
+          dist = 0.92 * t;
+          wMax = 0.24 * Math.sin(t * Math.PI);
+          arch = 0.2 * Math.sin(t * Math.PI);
+          for (v = -2; v <= 2; v++) {
+            w = (v / 2) * wMax;
+            lx = dist;
+            ly = dist * incl + arch;
+            lz = w;
+            pts.push([
+              bx + lx * ca - lz * sa,
+              by + ly,
+              bz + lx * sa + lz * ca,
+              0.2 * ca, 0.9, 0.2 * sa,
+              C_HOJA
+            ]);
           }
         }
       }
 
-      /**
-       * Construye el ramo completo combinando lirios, hortensias, nube y follaje.
-       */
-      function buildBouquet() {
-        addWrappingAndRibbon();
+      function construirRamo() {
+        var pts = [];
+        var i, j, t, y, rBase, theta, yOnd;
 
-        // 4 Lirios blancos protagonistas (arriba y hacia los lados)
-        const lilies = [
-          { x: 0.0, y: 2.38, z: 0.12, rx: 0.12, rz: 0.0, scale: 1.05 },
-          { x: 0.92, y: 1.98, z: 0.42, rx: 0.34, rz: -0.46, scale: 0.96 },
-          { x: -0.94, y: 2.02, z: 0.36, rx: 0.30, rz: 0.48, scale: 0.96 },
-          { x: 0.06, y: 2.05, z: -0.88, rx: -0.42, rz: -0.05, scale: 0.94 }
+        // 1. Papel kraft superior
+        for (i = 0; i < 22; i++) {
+          t = i / 21;
+          y = -0.35 + t * 1.48;
+          rBase = 0.26 + t * 1.24;
+          for (j = 0; j < 44; j++) {
+            theta = (j / 44) * Math.PI * 2;
+            yOnd = y + 0.11 * Math.sin(5 * theta) * t;
+            pts.push([
+              rBase * Math.cos(theta), yOnd, rBase * Math.sin(theta),
+              Math.cos(theta), 0.3, Math.sin(theta),
+              C_PAPEL
+            ]);
+          }
+        }
+        // Base del papel
+        for (i = 0; i < 10; i++) {
+          t = i / 9;
+          y = -0.35 - t * 0.72;
+          rBase = 0.26 + t * 0.24;
+          for (j = 0; j < 24; j++) {
+            theta = (j / 24) * Math.PI * 2;
+            pts.push([
+              rBase * Math.cos(theta), y, rBase * Math.sin(theta),
+              Math.cos(theta), -0.2, Math.sin(theta),
+              C_PAPEL
+            ]);
+          }
+        }
+
+        // 2. Listón rojo
+        for (i = 0; i < 5; i++) {
+          y = -0.44 + i * 0.045;
+          for (j = 0; j < 28; j++) {
+            theta = (j / 28) * Math.PI * 2;
+            pts.push([
+              0.33 * Math.cos(theta), y, 0.33 * Math.sin(theta),
+              Math.cos(theta), 0, Math.sin(theta),
+              C_LISTON
+            ]);
+          }
+        }
+
+        // 3. Lirios blancos principales
+        var lirios = [
+          [0.0, 2.22, 0.05, 0.15, 0.0, 0.76],
+          [0.86, 1.88, 0.45, 0.42, -0.45, 0.68],
+          [-0.86, 1.92, 0.40, 0.42, 0.45, 0.68],
+          [0.02, 1.92, -0.86, -0.48, 0.0, 0.68]
         ];
+        for (i = 0; i < lirios.length; i++) {
+          var l = lirios[i];
+          addTallo(pts, l[0] * 0.12, -1.55, l[2] * 0.12, l[0], l[1] - 0.12, l[2]);
+          addLirio(pts, l[0], l[1], l[2], l[3], l[4], l[5]);
+        }
 
-        lilies.forEach(l => {
-          addStem(l.x * 0.12, -1.6, l.z * 0.12, l.x, l.y - 0.1, l.z);
-          addWhiteLily(l.x, l.y, l.z, l.rx, l.rz, l.scale);
-        });
-
-        // 4 Hortensias blancas esponjosas dando volumen redondeado
-        const hydrangeas = [
-          { x: 0.82, y: 1.68, z: -0.56, rx: -0.25, rz: -0.35, r: 0.62 },
-          { x: -0.82, y: 1.70, z: -0.52, rx: -0.25, rz: 0.35, r: 0.62 },
-          { x: 0.04, y: 1.56, z: 0.94, rx: 0.42, rz: 0.0, r: 0.60 },
-          { x: 1.18, y: 1.38, z: 0.02, rx: 0.05, rz: -0.55, r: 0.54 }
+        // 4. Hortensias blancas (volumen esponjoso)
+        var hortensias = [
+          [0.72, 1.48, -0.58, 0.56],
+          [-0.74, 1.50, -0.52, 0.56],
+          [0.02, 1.45, 0.85, 0.54]
         ];
-
-        hydrangeas.forEach(h => {
-          addStem(h.x * 0.14, -1.55, h.z * 0.14, h.x, h.y - 0.15, h.z);
-          addWhiteHydrangea(h.x, h.y, h.z, h.rx, h.rz, h.r);
-        });
-
-        // Hojas verdes rodeando el ramo para enmarcar el blanco
-        for (let k = 0; k < 12; k++) {
-          const ang = (k / 12) * Math.PI * 2 + 0.18;
-          const r = 0.92 + (k % 2) * 0.14;
-          addLeaf(
-            r * Math.cos(ang),
-            1.02 + (k % 3) * 0.12,
-            r * Math.sin(ang),
-            ang,
-            0.42 + (k % 2) * 0.12,
-            1.02,
-            0.29,
-            k % 3
-          );
+        for (i = 0; i < hortensias.length; i++) {
+          var h = hortensias[i];
+          addTallo(pts, h[0] * 0.12, -1.55, h[2] * 0.12, h[0], h[1] - 0.25, h[2]);
+          addHortensia(pts, h[0], h[1], h[2], h[3]);
         }
 
-        // Follaje "Nube" (Baby's Breath) flotando suavemente entre y alrededor de las flores
-        const nubeSpots = [
-          [0.52, 2.48, 0.52],
-          [-0.54, 2.46, 0.50],
-          [0.58, 2.38, -0.45],
-          [-0.58, 2.36, -0.46],
-          [1.36, 1.88, 0.42],
-          [-1.36, 1.86, 0.38],
-          [1.26, 1.85, -0.52],
-          [-1.26, 1.82, -0.52],
-          [0.0, 1.98, 1.24],
-          [0.0, 2.32, -1.22]
-        ];
-
-        nubeSpots.forEach((pos, idx) => {
-          addBabysBreathSprig(
-            pos[0] * 0.35, 1.05, pos[2] * 0.35,
-            pos[0], pos[1], pos[2],
-            idx * 1.37
-          );
-        });
-      }
-
-      // Estado de cámara e interacción
-      let angleY = 0.3;
-      let angleX = 0.22; // Inclinación suave desde arriba
-      let velY = 0.0085; // Auto-rotación fluida
-      let isDragging = false;
-      let lastX = 0;
-      let lastY = 0;
-      let hasInteracted = false;
-
-      // Dimensiones de la grilla ASCII
-      let cols = 90;
-      let rows = 46;
-      let cellW = 8;
-      let cellH = 14;
-      let fontSize = 12;
-      let dpr = 1;
-
-      function resizeCanvas() {
-        dpr = Math.min(window.devicePixelRatio || 1, 2);
-        const rect = canvas.parentElement.getBoundingClientRect();
-        canvas.width = Math.floor(rect.width * dpr);
-        canvas.height = Math.floor(rect.height * dpr);
-
-        // Ajustar densidad de caracteres según el tamaño de pantalla (móvil vs escritorio)
-        const isSmallMobile = rect.width < 480;
-        fontSize = isSmallMobile ? 9.5 : (rect.width < 900 ? 11 : 12.5);
-        cellW = fontSize * 0.62;
-        cellH = fontSize * 1.12;
-
-        cols = Math.max(46, Math.floor(rect.width / cellW));
-        rows = Math.max(30, Math.floor(rect.height / cellH));
-      }
-
-      // Eventos de mouse y touch para girar el ramo
-      function onPointerDown(e) {
-        isDragging = true;
-        lastX = e.clientX;
-        lastY = e.clientY;
-        if (!hasInteracted && dragHint) {
-          hasInteracted = true;
-          dragHint.style.opacity = '0';
-        }
-      }
-
-      function onPointerMove(e) {
-        if (!isDragging) return;
-        const dx = e.clientX - lastX;
-        const dy = e.clientY - lastY;
-        lastX = e.clientX;
-        lastY = e.clientY;
-
-        angleY += dx * 0.011;
-        angleX = Math.max(-0.25, Math.min(0.75, angleX + dy * 0.006));
-        velY = dx * 0.004;
-      }
-
-      function onPointerUp() {
-        isDragging = false;
-      }
-
-      canvas.addEventListener('pointerdown', onPointerDown);
-      window.addEventListener('pointermove', onPointerMove);
-      window.addEventListener('pointerup', onPointerUp);
-      window.addEventListener('pointercancel', onPointerUp);
-      window.addEventListener('resize', resizeCanvas);
-
-      // Buffers reutilizables para máximo rendimiento
-      let zBuffer = new Float32Array(0);
-      let charBuffer = [];
-      let colorBuffer = [];
-      let glowBuffer = new Uint8Array(0);
-
-      function ensureBuffers(size) {
-        if (zBuffer.length !== size) {
-          zBuffer = new Float32Array(size);
-          charBuffer = new Array(size);
-          colorBuffer = new Array(size);
-          glowBuffer = new Uint8Array(size);
-        }
-      }
-
-      /**
-       * Bucle principal de renderizado (60fps)
-       */
-      function render(timeMs) {
-        const tSec = timeMs * 0.001;
-
-        if (!isDragging) {
-          angleY += velY;
-          // Suavizar inercia hasta regresar a la velocidad de giro constante
-          velY += (0.0085 - velY) * 0.03;
+        // 5. Follaje de "nube" (destellos delicados alrededor)
+        for (i = 0; i < 150; i++) {
+          var ang = i * 2.39996;
+          var rad = 0.45 + ((i * 37) % 100) / 100 * 1.15;
+          var ny = 1.2 + ((i * 53) % 100) / 100 * 1.35;
+          pts.push([
+            rad * Math.cos(ang), ny, rad * Math.sin(ang),
+            0, 1, 0,
+            C_NUBE
+          ]);
         }
 
-        const totalCells = cols * rows;
-        ensureBuffers(totalCells);
-        zBuffer.fill(-1e9);
-        charBuffer.fill('');
-        glowBuffer.fill(0);
+        // 6. Hojas verdes rodeando el ramo
+        for (i = 0; i < 8; i++) {
+          var ha = (i / 8) * Math.PI * 2 + 0.25;
+          addHoja(pts, 0.9 * Math.cos(ha), 1.02, 0.9 * Math.sin(ha), ha, 0.42);
+        }
 
-        const cosY = Math.cos(angleY);
-        const sinY = Math.sin(angleY);
-        const cosX = Math.cos(angleX);
-        const sinX = Math.sin(angleX);
+        return pts;
+      }
 
-        // Dirección de luz direccional
-        const lx = 0.35, ly = 0.62, lz = 0.70;
-        const camDist = 7.4;
-        const centerY = 0.52;
+      var puntos = construirRamo();
+      var angulo = 0;
+      var velocidad = 0.018;
+      var dragging = false;
+      var lastX = 0;
 
-        // Escala proporcional para que el ramo siempre quede bien encuadrado
-        const minDim = Math.min(cols * 0.56, rows);
-        const scale = minDim * 2.12;
-        const halfCols = cols * 0.5;
-        const halfRows = rows * 0.5;
+      // Interacción táctil y con mouse
+      function startDrag(x) { dragging = true; lastX = x; }
+      function moveDrag(x) {
+        if (!dragging) return;
+        angulo += (x - lastX) * 0.01;
+        lastX = x;
+      }
+      function endDrag() { dragging = false; }
 
-        for (let i = 0; i < points.length; i++) {
-          const p = points[i];
-          const yc = p.y - centerY;
+      canvas.addEventListener("touchstart", function (e) {
+        if (e.touches.length) startDrag(e.touches[0].clientX);
+      }, { passive: true });
+      canvas.addEventListener("touchmove", function (e) {
+        if (e.touches.length) moveDrag(e.touches[0].clientX);
+      }, { passive: true });
+      canvas.addEventListener("touchend", endDrag, { passive: true });
+      canvas.addEventListener("mousedown", function (e) { startDrag(e.clientX); });
+      window.addEventListener("mousemove", function (e) { moveDrag(e.clientX); });
+      window.addEventListener("mouseup", endDrag);
 
-          // Rotación en Y (giro horizontal)
-          const rx = p.x * cosY + p.z * sinY;
-          const rz = -p.x * sinY + p.z * cosY;
+      var W = 0, H = 0, cols = 60, rows = 50, fontSize = 10, cw = 6, ch = 10;
+      var zbuf = [];
+      var chBuf = [];
+      var colBuf = [];
 
-          // Inclinación en X
-          const ty = yc * cosX - rz * sinX;
-          const tz = yc * sinX + rz * cosX;
+      function resize() {
+        var dpr = Math.min(window.devicePixelRatio || 1, 2);
+        W = window.innerWidth || document.documentElement.clientWidth;
+        H = window.innerHeight || document.documentElement.clientHeight;
+        canvas.width = Math.floor(W * dpr);
+        canvas.height = Math.floor(H * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-          const zDist = camDist - tz;
-          if (zDist <= 0.2) continue;
+        fontSize = Math.max(8, Math.min(12, Math.floor(W / 44)));
+        cw = fontSize * 0.62;
+        ch = fontSize * 1.05;
+        cols = Math.max(30, Math.floor(W / cw));
+        rows = Math.max(30, Math.floor((H - 115) / ch));
 
-          const invZ = 1.0 / zDist;
-          const px = Math.floor(halfCols + scale * rx * invZ * 1.72);
-          const py = Math.floor(halfRows - scale * ty * invZ * 0.96);
+        var total = cols * rows;
+        zbuf = new Float32Array(total);
+        chBuf = new Array(total);
+        colBuf = new Array(total);
+      }
+
+      window.addEventListener("resize", resize);
+      resize();
+
+      var cosT = Math.cos(0.24), sinT = Math.sin(0.24);
+      var lx = 0.35, ly = 0.58, lz = 0.74;
+
+      function render() {
+        if (!dragging) angulo += velocidad;
+        var cosA = Math.cos(angulo), sinA = Math.sin(angulo);
+        var total = cols * rows;
+        var i;
+
+        for (i = 0; i < total; i++) {
+          zbuf[i] = -1e9;
+          chBuf[i] = "";
+        }
+
+        var aspect = ch / cw;
+        var unit = Math.min((cols * 1.32) / aspect, rows * 1.12);
+        var scaleY = unit;
+        var scaleX = unit * aspect;
+        var halfC = cols * 0.5;
+        var halfR = rows * 0.52;
+
+        for (i = 0; i < puntos.length; i++) {
+          var p = puntos[i];
+          var yc = p[1] - 0.45;
+          var rx = p[0] * cosA + p[2] * sinA;
+          var rz = -p[0] * sinA + p[2] * cosA;
+          var ty = yc * cosT - rz * sinT;
+          var tz = yc * sinT + rz * cosT;
+          var zDist = 7.0 - tz;
+          if (zDist <= 0.1) continue;
+
+          var invZ = 1 / zDist;
+          var px = Math.floor(halfC + scaleX * rx * invZ);
+          var py = Math.floor(halfR - scaleY * ty * invZ);
 
           if (px >= 0 && px < cols && py >= 0 && py < rows) {
-            const idx = py * cols + px;
-            if (invZ > zBuffer[idx]) {
-              zBuffer[idx] = invZ;
+            var idx = py * cols + px;
+            if (invZ > zbuf[idx]) {
+              zbuf[idx] = invZ;
+              var rnx = p[3] * cosA + p[5] * sinA;
+              var rnz = -p[3] * sinA + p[5] * cosA;
+              var tny = p[4] * cosT - rnz * sinT;
+              var tnz = p[4] * sinT + rnz * cosT;
+              var lum = rnx * lx + tny * ly + tnz * lz;
+              var b = Math.max(0.18, Math.min(1, lum * 0.5 + 0.56));
+              chBuf[idx] = LUM[Math.floor(b * (LUM.length - 1))];
+              colBuf[idx] = p[6];
+            }
+          }
+        }
 
-              // Rotar normal para iluminación realista
-              const rnx = p.nx * cosY + p.nz * sinY;
-              const rnz = -p.nx * sinY + p.nz * cosY;
-              const tny = p.ny * cosX - rnz * sinX;
-              const tnz = p.ny * sinX + rnz * cosX;
+        ctx.fillStyle = "#09090d";
+        ctx.fillRect(0, 0, W, H);
+        ctx.font = fontSize + "px Menlo, Monaco, Consolas, monospace";
+        ctx.textBaseline = "top";
 
-              const dot = rnx * lx + tny * ly + tnz * lz;
-              const shade = Math.max(0.28, Math.min(1.0, dot * 0.48 + 0.62));
+        var offX = (W - cols * cw) * 0.5;
+        var offY = 14;
+        var lastCol = "";
 
-              if (p.kind === 'nube') {
-                // Efecto de centelleo delicado para la "nube"
-                const twinkle = 0.5 + 0.5 * Math.sin(tSec * 2.6 + p.phase);
-                const charIndex = Math.floor(twinkle * NUBE_CHARS.length) % NUBE_CHARS.length;
-                charBuffer[idx] = NUBE_CHARS[charIndex];
-                const alpha = 0.58 + 0.42 * twinkle;
-                colorBuffer[idx] = `rgba(${p.r},${p.g},${p.b},${alpha.toFixed(2)})`;
-                glowBuffer[idx] = twinkle > 0.72 ? 1 : 0;
-              } else {
-                const lumIndex = Math.min(
-                  LUMINANCE_CHARS.length - 1,
-                  Math.max(0, Math.floor(shade * (LUMINANCE_CHARS.length - 1)))
-                );
-                charBuffer[idx] = LUMINANCE_CHARS[lumIndex];
-
-                const cr = Math.min(255, Math.round(p.r * shade));
-                const cg = Math.min(255, Math.round(p.g * shade));
-                const cb = Math.min(255, Math.round(p.b * shade));
-                colorBuffer[idx] = `rgb(${cr},${cg},${cb})`;
-                glowBuffer[idx] = (p.kind === 'stamen' || (p.kind === 'lily' && shade > 0.92)) ? 1 : 0;
+        for (var r = 0; r < rows; r++) {
+          var rowBase = r * cols;
+          var yPos = offY + r * ch;
+          for (var c = 0; c < cols; c++) {
+            var chChar = chBuf[rowBase + c];
+            if (chChar) {
+              var col = colBuf[rowBase + c];
+              if (col !== lastCol) {
+                ctx.fillStyle = col;
+                lastCol = col;
               }
+              ctx.fillText(chChar, offX + c * cw, yPos);
             }
           }
         }
 
-        // Dibujar en el canvas
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        const viewW = canvas.width / dpr;
-        const viewH = canvas.height / dpr;
-        ctx.clearRect(0, 0, viewW, viewH);
-
-        ctx.font = `500 ${fontSize}px 'JetBrains Mono', monospace`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-
-        const offsetX = (viewW - cols * cellW) * 0.5 + cellW * 0.5;
-        const offsetY = (viewH - rows * cellH) * 0.5 + cellH * 0.5;
-
-        for (let r = 0; r < rows; r++) {
-          const yPos = offsetY + r * cellH;
-          const rowOffset = r * cols;
-          for (let c = 0; c < cols; c++) {
-            const idx = rowOffset + c;
-            const ch = charBuffer[idx];
-            if (!ch) continue;
-
-            const xPos = offsetX + c * cellW;
-            if (glowBuffer[idx]) {
-              ctx.shadowColor = colorBuffer[idx];
-              ctx.shadowBlur = 7;
-            } else {
-              ctx.shadowBlur = 0;
-            }
-            ctx.fillStyle = colorBuffer[idx];
-            ctx.fillText(ch, xPos, yPos);
-          }
-        }
-        ctx.shadowBlur = 0;
-
-        requestAnimationFrame(render);
+        window.requestAnimationFrame(render);
       }
 
-      // Inicializar al cargar la ventana
-      window.onload = function () {
-        buildBouquet();
-        resizeCanvas();
-        requestAnimationFrame(render);
-      };
+      window.requestAnimationFrame(render);
     })();
   </script>
 </body>
